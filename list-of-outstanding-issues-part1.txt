@@ -1,0 +1,9 @@
+Replace the placeholder issue below with real issues before the first run.
+
+IssueID: REPLACE-001
+Severity: medium
+Scope: target file or skill IDs
+Problem: Describe one concrete defect or one tightly coupled defect cluster.
+Evidence: Quote the file, command result, or observed mismatch proving the defect.
+RequiredFix: State the exact change required at the authority-owner surface.
+Verify: State the exact success criteria that Verify must check.
