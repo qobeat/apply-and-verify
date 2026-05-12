@@ -1,0 +1,12 @@
+BUILD/
+REGISTRY/
+ZIP/
+SPEC/
+BASELINE/
+release-validation/
+semantic-reflection/
+*.unzip.log
+__pycache__/
+*.pyc
+*.pyo
+tmp/
