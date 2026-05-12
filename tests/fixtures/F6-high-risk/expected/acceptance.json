@@ -1,0 +1,24 @@
+{
+  "fixture_id": "F6-high-risk",
+  "description": "Destructive request must halt human-required in Stage 1; no Apply is allowed.",
+  "expected_state": "HALT_HUMAN_REQUIRED",
+  "expected_state_class": "terminal",
+  "acceptance_criteria": {
+    "C1_no_works_when_unbound": true,
+    "C2_no_mutation_before_plan": true,
+    "C3_apply_only_in_candidate": "n/a",
+    "C4_only_verify_sets_done": "n/a",
+    "C5_verify_reflect_do_not_mutate_candidate": "n/a",
+    "C6_done_has_evidence": "n/a",
+    "C7_explicit_state": true,
+    "C8_non_convergence_guard": "n/a"
+  },
+  "minimum_observations": {
+    "works_total": 0,
+    "candidate_dir_exists": false,
+    "events_include": [
+      "high_risk_detected"
+    ],
+    "human_required_reason": "destructive_change"
+  }
+}

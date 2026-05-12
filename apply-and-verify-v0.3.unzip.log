@@ -1,0 +1,23 @@
+== [ ZIP INFO ] ===
+/mnt/c/Users/kirae/Downloads/fox-dev/apply-and-verify-v0.3.zip
+
+TIME: 2026-05-12 18:08:02
+
+TOTAL SIZE: 46.3KB (47446 bytes)
+
+CHECKSUM: 95122285 (md5-8)
+
+== [ UNZIP INFO ] ===
+PID:3420
+
+CMD: /home/alex/.local/bin/unzip-gpt.sh -x app
+
+TIME: 2026-05-12 18:08:20 -0400
+
+LOG: /home/alex/tmp/unzip-gpt-rsync.PqnW1e.log
+
+TOTAL SIZE: 122.8KB (125767 bytes)
+
+NUMBER OF FILES: 50
+
+--

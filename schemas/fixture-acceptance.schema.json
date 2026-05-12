@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "fixture acceptance",
+  "type": "object",
+  "required": [
+    "fixture_id",
+    "description",
+    "expected_state",
+    "expected_state_class",
+    "acceptance_criteria",
+    "minimum_observations"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "fixture_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "expected_state": {
+      "type": "string"
+    },
+    "expected_state_class": {
+      "type": "string",
+      "enum": [
+        "terminal",
+        "paused",
+        "active"
+      ]
+    },
+    "acceptance_criteria": {
+      "type": "object"
+    },
+    "minimum_observations": {
+      "type": "object"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

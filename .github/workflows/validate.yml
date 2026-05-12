@@ -1,0 +1,18 @@
+name: Validate Apply & Verify Contract
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Static contract validation
+        run: python tools/av_validate.py .
+      - name: Base reproducibility tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v

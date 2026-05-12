@@ -1,12 +1,16 @@
-BUILD/
-REGISTRY/
-ZIP/
-SPEC/
-BASELINE/
-release-validation/
-semantic-reflection/
-*.unzip.log
+# Runtime state
+state/
+*.zip
+
+# Python
 __pycache__/
 *.pyc
-*.pyo
-tmp/
+.pytest_cache/
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

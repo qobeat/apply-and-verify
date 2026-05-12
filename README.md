@@ -1,151 +1,161 @@
-# apply-and-verify bootstrap package
+# Apply & Verify v0.3
 
-A minimal two-prompt bootstrap package for zip-local package repair loops.
+Apply & Verify is a small, inspectable bootstrap package for **artifact-changing LLM-agent work**.
 
-This package intentionally keeps the control surface small:
+The project goal is to make an agent's work on files, code, configuration, and zip packages more controllable. Instead of relying on one long prompt, Apply & Verify gives the agent a process contract: skills, states, guards, schemas, fixtures, and tests. The language model may still reason probabilistically, but the package defines deterministic control over input binding, mutation authority, verification, evidence, and termination.
 
-- `FixPrompt.txt` owns **Plan + Apply**
-- `ReflectionPrompt.txt` owns **Verify + Reflect**
-- `list-of-outstanding-issues-part1.txt` is the mutable initial backlog
-- `works.json` is the mutable execution ledger produced by `Plan`
+## Goal and objectives
 
-The target package remains the authority for its own goal, objectives, glossary, topology, schemas, skills, and validation commands. These prompts must not restate or replace those authorities when the target package already defines them.
+**Goal:** provide a minimum sufficient process contract for tasks where an LLM agent must change an artifact and prove that the requested change was completed.
 
-## Files
+**Objectives:**
 
-- `README.md` — package overview, usage, formats
-- `SKILLS.md` — skill contracts for Plan / Apply / Verify / Reflect
-- `FixPrompt.txt` — stable operator prompt for planning and applying fixes
-- `ReflectionPrompt.txt` — stable operator prompt for verification and recursive reflection
-- `list-of-outstanding-issues-part1.txt` — starter issue backlog template
-- `works.json.example` — example Plan output ledger
+1. **Bind inputs before planning.** The agent must not create work items while mandatory inputs are missing, ambiguous, or contradictory.
+2. **Separate planning, mutation, verification, and reflection.** A skill that changes files must not also certify success.
+3. **Isolate mutation.** The agent must change only a candidate copy, not the original target package.
+4. **Require evidence for completion.** `done=true` is valid only when `Verify` records evidence.
+5. **Make failure observable.** Ambiguity, contradiction, unsupported requests, repeated failure, and high-risk requests must become explicit paused or terminal states.
+6. **Keep the artifact portable.** The package uses Markdown, JSON, JSONL conventions, and Python stdlib tests so it can run in a plain container or GitHub Actions.
 
-## Design
+## What this project is not
 
-This package uses a compact four-skill loop:
+Apply & Verify v0.3 is not a production workflow engine, not a universal agent framework, and not a claim that LLM inference becomes deterministic. It is a **reference process artifact**: a small repository that an agent, developer, or reviewer can inspect, run, test, and adapt.
 
-1. **Plan**  
-   Read the newest outstanding-issues file and the target package.  
-   Produce `works.json`.
+## Process summary
 
-2. **Apply**  
-   Execute all `apply-directive` values from `works.json` against the input package zip.  
-   Produce `packageVNext.zip`.  
-   If the target package uses companion trace/spec zips, regenerate matching companions.
+The Stage-1 minimum real product uses seven skills:
 
-3. **Verify**  
-   Unzip `packageVNext.zip`.  
-   Run all `verify-directive` values from `works.json`.  
-   Update the `done` field in `works.json`.  
-   Also verify target-package self-checks, tracing, and governance-contract closure.
+| Skill | Role |
+|---|---|
+| `Intake` | Normalize the raw request and classify the intent. |
+| `BindParameters` | Bind required inputs such as target package, issue source, mutation boundary, output target, and risk profile. |
+| `AskQuestions` | Pause safely when required information is missing or ambiguous. |
+| `Plan` | Convert a bound request into atomic work items in `state/works.json`. |
+| `Apply` | Apply work items to a candidate copy only. |
+| `Verify` | Check the candidate and set `done=true` only with evidence. |
+| `Reflect` | Decide success, loop, human escalation, unsupported halt, or non-convergence halt. |
 
-4. **Reflect**  
-   If any work remains `done=false`, or if new defects are discovered, write the next
-   `list-of-outstanding-issues-partN.txt`, call `FixPrompt.txt` again on the current
-   candidate package, and rerun verification.  
-   Reflect never bumps the version. It keeps repairing the same candidate package
-   until all works are done and the newest issue list is empty.
+The four-skill loop `Plan / Apply / Verify / Reflect` is only the kernel. A real user-facing product also needs `Intake / BindParameters / AskQuestions` so the agent does not silently guess missing inputs.
 
-## Input assumptions
+## Topology
 
-The target package may be:
-- one core zip only; or
-- one core zip plus companion trace/spec zips.
-
-The target package may expose helper commands or validators. Use them when present.
-If a target validation command is absent, report it as unrun and continue with
-file-based verification.
-
-## Issue file format
-
-`list-of-outstanding-issues-partN.txt` is plain text. Use one block per issue.
-
-Required fields:
-
-- `IssueID`
-- `Severity`
-- `Scope`
-- `Problem`
-- `Evidence`
-- `RequiredFix`
-- `Verify`
-
-Recommended severity values:
-- `critical`
-- `high`
-- `medium`
-- `low`
-
-The issue file should be atomic and operational. Each issue must be specific enough
-for `Plan` to create one or more works with exact apply and verify directives.
-
-## works.json format
-
-`Plan` outputs `works.json`.
-
-Minimum required format:
-
-```json
-[
-  {
-    "work_id": "W-001",
-    "apply-directive": "Change the authority-owner file ...",
-    "verify-directive": "Confirm the new field exists and target validations pass ...",
-    "done": false
-  }
-]
+```text
+apply-and-verify/
+  README.md                         project overview and usage
+  SKILLS.md                         human-readable skill contracts
+  PROCESS.md                        human-readable process contract
+  PROCESS.json                      canonical machine-readable process contract
+  FixPrompt.txt                     operator prompt for Intake/Bind/Ask/Plan/Apply
+  ReflectionPrompt.txt              operator prompt for Verify/Reflect
+  CHANGELOG.md                      release history
+  ARTIFACT.md                       artifact inventory and claim boundary
+  CODE_AVAILABILITY.md              code availability statement template
+  EVALUATION_PROTOCOL.md            fixture execution protocol
+  RESULTS_TEMPLATE.csv              table template for behavioral runs
+  UNITTEST.md                       detailed description of base tests
+  schemas/                          JSON schemas for process and state artifacts
+  examples/                         valid example inputs and state artifacts
+  tests/
+    test_static_contract.py         four Python stdlib reproducibility tests
+    fixtures/F1-clean/              happy path fixture
+    fixtures/F2-ambiguous/          missing target / clarification fixture
+    fixtures/F3-contradictory/      contradictory input fixture
+    fixtures/F4-verify-failure/     verify-failure then repair fixture
+    fixtures/F5-non-convergence/    repeated failure fixture
+    fixtures/F6-high-risk/          destructive/high-risk halt fixture
+  tools/
+    av_validate.py                  static contract validator
 ```
 
-Rules:
-- `work_id` must be unique.
-- `apply-directive` must tell the agent exactly what to change and where.
-- `verify-directive` must state exact success criteria.
-- `done` is boolean and is updated only by `Verify`.
+### Canonical sources
 
-## Usage
+| Topic | Canonical file |
+|---|---|
+| States, transitions, guards, guarantees, authority matrix | `PROCESS.json` |
+| Human explanation of process semantics | `PROCESS.md` |
+| Skill contracts | `SKILLS.md` |
+| Static validation rules | `tools/av_validate.py` |
+| Base reproducibility tests | `tests/test_static_contract.py` and `UNITTEST.md` |
+| Behavioral fixture protocol | `EVALUATION_PROTOCOL.md` |
 
-### First pass
+When Markdown and JSON differ, treat `PROCESS.json` as the canonical process contract.
 
-Inputs:
-- target `package.zip`
-- optional `trace-package.zip`
-- optional `spec-package.zip`
-- `list-of-outstanding-issues-part1.txt`
+## How to validate and test
 
-Run `FixPrompt.txt`.
+Run from the repository root:
 
-Outputs:
-- `works.json`
-- `packageVNext.zip`
-- optional companion zips
+```bash
+python tools/av_validate.py .
+python -m unittest discover -s tests -p 'test_*.py' -v
+```
 
-Then run `ReflectionPrompt.txt` using:
-- `packageVNext.zip`
-- optional companion zips
-- `works.json`
-- the newest `list-of-outstanding-issues-partN.txt`
+Expected result:
 
-### Recursive passes
+```text
+VALIDATION PASSED — package is structurally valid.
+Ran 4 tests ... OK
+```
 
-`ReflectionPrompt.txt` must:
-1. verify all works;
-2. write `list-of-outstanding-issues-partN+1.txt` containing only still-open or newly found issues;
-3. call `FixPrompt.txt` again if any issue remains;
-4. rerun itself until:
-   - all `done` values are `true`; and
-   - the newest issue file is zero-byte.
+These commands are intentionally stdlib-only. They test the package structure, process contract, examples, fixture preconditions, and documentation alignment. They do **not** execute an LLM agent and do **not** prove fixture behavioral success.
 
-## Stop condition
+## How to use it with an LLM agent
 
-Stop only when both are true:
-1. `works.json` has no row with `done=false`;
-2. the newest `list-of-outstanding-issues-partN.txt` is zero-byte.
+Use this package as a working directory or as a bootstrap zip for another agent session.
 
-## Design constraints
+1. Put the source package or files to be changed into a target input location.
+2. Give the agent `README.md`, `SKILLS.md`, `PROCESS.json`, `PROCESS.md`, and the relevant prompt file.
+3. Require the agent to create runtime output under `state/` only.
+4. Require the agent to follow the seven-skill flow in `PROCESS.json`.
+5. Require every completed work item in `state/works.json` to have an `evidence_refs` entry.
+6. Run `python tools/av_validate.py .` before and after package-level changes.
+7. Record behavioral runs using `RESULTS_TEMPLATE.csv` and the protocol in `EVALUATION_PROTOCOL.md`.
 
-- Do not duplicate GOAL, OBJECTIVES, glossary, or schema rules already owned by the target package.
-- Prefer changing the authority-owner file instead of patching dependent copies.
-- Keep helper scripts mechanical if the target package has them.
-- Do not promote generated evidence into normative package truth.
-- Do not add unregistered static files to the target package.
-- Preserve version naming used by the target package unless the target package itself requires a bump.
+Typical runtime state files:
+
+```text
+state/run-state.json
+state/intake-result.json
+state/parameter-bindings.json
+state/questions.json
+state/works.json
+state/issues.partN.jsonl
+state/events.jsonl
+state/candidate/vN/
+state/verification-report.md
+state/reflect-summary.iterN.md
+```
+
+`state/` is runtime output and is ignored by git.
+
+## How to change the package safely
+
+For small maintenance changes:
+
+1. Edit only the files required by the change.
+2. If process semantics change, update `PROCESS.json` first.
+3. Update `PROCESS.md` only as a projection of `PROCESS.json`.
+4. If a schema changes, update the matching example file and test/fixture data.
+5. If a test changes, update `UNITTEST.md` in the same commit.
+6. If a fixture changes, update `EVALUATION_PROTOCOL.md` or the fixture's `expected/acceptance.json`.
+7. Update `CHANGELOG.md`.
+8. Run:
+
+```bash
+python tools/av_validate.py .
+python -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+For larger process changes, use a new version branch and keep the old package reproducible until the new validator and tests pass.
+
+## Base tests
+
+`UNITTEST.md` documents the four reproducible base tests:
+
+1. static validator pass;
+2. guarantee alignment between `PROCESS.md` and `PROCESS.json`;
+3. explicit transition semantics and deterministic transition pairs;
+4. fixture input and acceptance-contract workability.
+
+## Current version
+
+Current package version: **v0.3**.

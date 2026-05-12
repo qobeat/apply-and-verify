@@ -1,8 +1,0 @@
-[
-  {
-    "work_id": "W-001",
-    "apply-directive": "Edit the authority-owner file that defines the defect. Make the minimal coherent change required to close IssueID REPLACE-001 and update only dependent files that must stay consistent.",
-    "verify-directive": "Confirm that IssueID REPLACE-001 is closed by checking the changed owner file, all required dependent files, and any target-package validation commands relevant to the change.",
-    "done": false
-  }
-]

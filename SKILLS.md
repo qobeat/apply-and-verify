@@ -1,136 +1,245 @@
-# SKILLS.md
+# Skills
 
-This bootstrap package defines four operator skills.
+This file defines the seven skills required for the Stage-1 minimum real Apply & Verify product.
 
-## Skill table
+Each skill has a narrow authority boundary. Do not merge skills unless the merged skill preserves all authority constraints.
 
-| Skill | Purpose | Input | Output |
-|---|---|---|---|
-| Plan | Convert the newest outstanding-issues file into an executable work ledger | `list-of-outstanding-issues-partN.txt`, `package.zip` | `works.json` |
-| Apply | Execute all apply directives against the input package | `works.json`, `package.zip` | `packageVNext.zip` and optional companion zips |
-| Verify | Check the candidate package against every verify directive and update work status | `packageVNext.zip`, `works.json` | updated `works.json` |
-| Reflect | Repair unresolved works on the same candidate package and rerun verification until closure | `packageVNext.zip`, `works.json`, newest outstanding issues file | updated `works.json`, next issue file, same-version repaired `packageVNext.zip` |
+## Skill: Intake
 
----
+**Purpose.** Normalize the raw user request into a stable, inspectable intake artifact.
 
-## 1. Plan
+**Input contract.**
 
-### Inputs
-- newest `list-of-outstanding-issues-partN.txt`
-- target `package.zip`
-- optional companion trace/spec zips
-- target package files after unzip
+- Raw user request text.
+- Optional attached target package path or zip.
+- Optional issue list path or inline issue list.
 
-### Output
-- `works.json`
+**Output contract.**
 
-### Required output shape
+- `state/intake-result.json` matching `schemas/intake-result.schema.json`.
+- One `events.jsonl` event with `event_type=intake_completed` or `event_type=unsupported_request`.
 
-`works.json` must be a JSON array of objects with exactly these required fields:
+**Authority.**
 
-- `work_id`
-- `apply-directive`
-- `verify-directive`
-- `done`
+- MAY create `state/intake-result.json`.
+- MAY append to `state/events.jsonl`.
+- MUST NOT create `state/works.json`.
+- MUST NOT mutate the target package.
+- MUST NOT mutate `state/candidate/`.
 
-### Plan rules
-1. Read the issue file and split it into atomic works.
-2. One work may cover one issue or a tightly coupled issue cluster, but the work must still have one clear owner surface.
-3. Each `apply-directive` must:
-   - identify the file or files to change;
-   - identify the authority-owner surface;
-   - state the concrete modification;
-   - state any required consistency propagation.
-4. Each `verify-directive` must:
-   - identify the expected changed state;
-   - identify the exact validation command, file check, or schema check;
-   - define closure criteria.
-5. Set every `done` value to `false` in the initial Plan output.
+**Instruction.**
 
----
+Read the raw request exactly. Normalize spelling and whitespace only when meaning is preserved. Extract intent type, action verbs, mentioned artifacts, and explicit constraints. Mark unsupported requests instead of forcing them into the package-repair flow.
 
-## 2. Apply
+**Success criteria.**
 
-### Inputs
-- `works.json`
-- input `package.zip`
-- optional companion trace/spec zips
+- Intake result exists and records the normalized request.
+- Intent type is one of the schema enum values.
+- No candidate or work registry is created by this skill.
 
-### Output
-- `packageVNext.zip`
-- optional regenerated companion zips
+## Skill: BindParameters
 
-### Apply rules
-1. Unzip the input package into a clean workspace.
-2. Execute every `apply-directive` from `works.json`.
-3. Apply must act on all works in the initial pass.
-4. Preserve the target package naming/versioning policy when obvious.
-5. If versioning is not obvious, emit a generic candidate named `packageVNext.zip`.
-6. Regenerate companion trace/spec artifacts if the target package uses them.
-7. Do not mark works as done. Only `Verify` may update `done`.
+**Purpose.** Bind required execution parameters and detect missing, ambiguous, contradictory, or out-of-scope inputs before planning.
 
----
+**Input contract.**
 
-## 3. Verify
+- `state/intake-result.json`.
+- Raw request text.
+- Available attachments or paths.
+- Existing issue list if supplied.
 
-### Inputs
-- `packageVNext.zip`
-- optional companion zips
-- `works.json`
+**Output contract.**
 
-### Output
-- updated `works.json`
+- `state/parameter-bindings.json` matching `schemas/parameter-bindings.schema.json`.
+- One event with one of: `parameters_bound`, `mandatory_inputs_unbound`, `contradictory_input`, `out_of_scope`.
 
-### Verify rules
-1. Unzip `packageVNext.zip` into a clean workspace.
-2. Run every `verify-directive` in `works.json`.
-3. Update `done=true` only when the work's verify directive fully passes.
-4. Update `done=false` when:
-   - the verify directive fails;
-   - the target package self-checks fail in a way relevant to that work;
-   - the fix created a new contradiction for that work.
-5. When the target package provides deterministic self-checks, run them.
-6. When a target self-check is absent, report it as unrun and continue with file-based verification.
-7. Verification must also check package tracing and governance surfaces when the target package defines them.
+**Authority.**
 
----
+- MAY create/update `state/parameter-bindings.json`.
+- MAY append to `state/events.jsonl`.
+- MUST NOT create `state/works.json`.
+- MUST NOT mutate the target package.
+- MUST NOT mutate `state/candidate/`.
 
-## 4. Reflect
+**Instruction.**
 
-### Inputs
-- `packageVNext.zip`
-- optional companion zips
-- `works.json`
-- newest `list-of-outstanding-issues-partN.txt`
-- previous issue files, if available
+Bind at least these parameters: `target_package`, `requested_action`, `issue_source`, `mutation_boundary`, `output_package_name`, and `risk_policy`. Use explicit input first. Use context only when it is directly observable. Do not guess missing mandatory parameters. If inputs conflict, mark `contradictory`.
 
-### Output
-- updated `works.json`
-- next `list-of-outstanding-issues-partN+1.txt`
-- same-version repaired `packageVNext.zip`
+**Success criteria.**
 
-### Reflect rules
-1. Read the updated `works.json`.
-2. Write the next outstanding-issues file containing only:
-   - works still unresolved;
-   - newly discovered issues found during Verify;
-   - regressions reopened by recent changes.
-3. If the newest issue file is not empty, run another repair pass on the same candidate package.
-4. Reflect must apply fixes only for works with `done=false` or for new issues written in the newest issue file.
-5. Reflect must not bump the version.
-6. After the repair pass, Reflect must call Verify again.
-7. Repeat until:
-   - every work is `done=true`; and
-   - the newest issue file is zero-byte.
+- Every required parameter is present in the bindings list.
+- Each required parameter has a status.
+- Planning is allowed only when all mandatory parameters are `bound_explicit`, `bound_from_context`, `defaulted`, or `derived` with evidence.
 
----
+## Skill: AskQuestions
 
-## Minimal design intent
+**Purpose.** Ask the smallest set of user questions needed to unblock safe execution.
 
-This package deliberately stays small:
-- two prompts;
-- one issue-list family;
-- one work ledger;
-- four skills.
+**Input contract.**
 
-It is meant to be copied into a container chat and used as a zip-local repair loop, not as a full agent framework.
+- `state/parameter-bindings.json` with at least one required parameter marked `missing`, `ambiguous`, or `contradictory`.
+
+**Output contract.**
+
+- `state/questions.json` matching `schemas/questions.schema.json`.
+- `state/run-state.json` updated to `WAIT_USER`.
+- One event with `event_type=questions_emitted`.
+
+**Authority.**
+
+- MAY create/update `state/questions.json`.
+- MAY update `state/run-state.json` to `WAIT_USER`.
+- MAY append to `state/events.jsonl`.
+- MUST NOT create `state/works.json`.
+- MUST NOT mutate the target package.
+- MUST NOT mutate `state/candidate/`.
+
+**Instruction.**
+
+Ask only questions needed to bind mandatory parameters. Each question must name the parameter, expected answer format, and why it is required. Do not continue to `Plan` until the missing or ambiguous parameter is resolved.
+
+**Success criteria.**
+
+- Questions are specific and actionable.
+- Run state is paused at `WAIT_USER`.
+- No works or candidate are created.
+
+## Skill: Plan
+
+**Purpose.** Convert bound inputs and issue descriptions into atomic, verifiable work items.
+
+**Input contract.**
+
+- `state/intake-result.json`.
+- `state/parameter-bindings.json` with all mandatory inputs bound.
+- Issue list or review result.
+- Target package inventory.
+
+**Output contract.**
+
+- `state/works.json` matching `schemas/works.schema.json`.
+- One event with `event_type=works_planned`.
+
+**Authority.**
+
+- MAY create/update `state/works.json`.
+- MAY append to `state/events.jsonl`.
+- MUST NOT mutate candidate or target package.
+- MUST NOT set `done=true` unless carrying forward a verified item from a previous run with evidence.
+
+**Instruction.**
+
+Create one or more work rows. Each row must include an exact `apply_directive`, exact `verify_directive`, `owner_surface`, `risk_level`, `done=false`, and empty `evidence_refs`. Split broad issues into atomic works. Mark high-risk changes but do not execute them.
+
+**Success criteria.**
+
+- Every work item is independently verifiable.
+- Every work item has a concrete owner surface.
+- No mutation occurs during planning.
+
+## Skill: Apply
+
+**Purpose.** Apply planned changes to an isolated candidate copy.
+
+**Input contract.**
+
+- `state/works.json` with at least one `done=false` row.
+- Bound target package.
+- Candidate path or permission to create `state/candidate/vN/`.
+
+**Output contract.**
+
+- Updated files under `state/candidate/vN/` only.
+- One event per applied work with `event_type=work_applied` or `event_type=work_apply_failed`.
+
+**Authority.**
+
+- MAY create/update files under `state/candidate/vN/`.
+- MAY append to `state/events.jsonl`.
+- MUST NOT mutate the original target package.
+- MUST NOT update `state/works.json` `done` field.
+- MUST NOT write verification evidence as final truth.
+
+**Instruction.**
+
+Create a candidate copy before mutation. Execute each `apply_directive` literally. Keep changes minimal and limited to the owner surface unless the directive explicitly requires a dependent update. If a directive is unsafe or impossible, record failure and do not improvise.
+
+**Success criteria.**
+
+- Candidate exists when apply succeeds.
+- Original target package remains unchanged.
+- `done` fields remain unchanged after Apply.
+
+## Skill: Verify
+
+**Purpose.** Verify candidate changes against work-specific directives and collect evidence.
+
+**Input contract.**
+
+- `state/works.json`.
+- `state/candidate/vN/`.
+- Work-specific `verify_directive` values.
+- Available package validation commands.
+
+**Output contract.**
+
+- Updated `state/works.json` with `done` and `evidence_refs` only.
+- `state/verification-report.md`.
+- One event per verified work with `event_type=work_verified` or `event_type=work_verification_failed`.
+
+**Authority.**
+
+- MAY update `state/works.json` fields `done` and `evidence_refs` only.
+- MAY create/update `state/verification-report.md`.
+- MAY append to `state/events.jsonl`.
+- MUST NOT mutate the candidate.
+- MUST NOT mutate the original target package.
+
+**Instruction.**
+
+Run each `verify_directive`. Use file checks, schema checks, command output, and package validators when available. A work item may be set `done=true` only when its verify directive passes and evidence is recorded.
+
+**Success criteria.**
+
+- Every `done=true` row has at least one evidence reference.
+- Failed works remain `done=false`.
+- Candidate content is unchanged by verification.
+
+## Skill: Reflect
+
+**Purpose.** Decide whether the run halts, loops, or requires human intervention.
+
+**Input contract.**
+
+- `state/works.json`.
+- `state/verification-report.md`.
+- `state/issues.partN.jsonl` if present.
+- `state/events.jsonl`.
+- `state/run-state.json`.
+
+**Output contract.**
+
+- Updated `state/run-state.json`.
+- `state/issues.partN+1.jsonl` when new or still-open issues exist.
+- `state/reflect-summary.iterN.md`.
+- One event with one of: `halt_success`, `loop_required`, `non_converged`, `human_required`, `unsupported_halt`.
+
+**Authority.**
+
+- MAY update `state/run-state.json`.
+- MAY create the next issue registry `state/issues.partN+1.jsonl`.
+- MAY create `state/reflect-summary.iterN.md`.
+- MAY append to `state/events.jsonl`.
+- MUST NOT mutate the candidate.
+- MUST NOT mutate the original target package.
+- MUST NOT set `done=true`.
+
+**Instruction.**
+
+If all works are done and no open issues remain, halt success. If verification failed and iteration limits are not exceeded, create the next issue registry and loop to `Plan`. If the same issue fingerprint repeats beyond the limit, halt non-convergence. If risk exceeds the Stage-1 policy or input remains contradictory, halt human-required.
+
+**Success criteria.**
+
+- Run ends only in an explicit terminal state or pauses at `WAIT_USER`.
+- Repeated issue fingerprints are detected.
+- Reflect never mutates candidate content.

@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "works.json",
+  "description": "Work registry produced by Plan and updated by Verify for done/evidence only.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "work_id",
+      "owner_surface",
+      "apply_directive",
+      "verify_directive",
+      "risk_level",
+      "done",
+      "evidence_refs"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "work_id": {
+        "type": "string",
+        "pattern": "^W-[0-9]{3,}$"
+      },
+      "issue_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^ISS-[0-9]{3,}$"
+      },
+      "owner_surface": {
+        "type": "string",
+        "minLength": 1
+      },
+      "apply_directive": {
+        "type": "string",
+        "minLength": 10
+      },
+      "verify_directive": {
+        "type": "string",
+        "minLength": 10
+      },
+      "risk_level": {
+        "type": "string",
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ]
+      },
+      "done": {
+        "type": "boolean"
+      },
+      "evidence_refs": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "work_group": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "fingerprint": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    }
+  }
+}

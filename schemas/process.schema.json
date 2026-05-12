@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PROCESS.json",
+  "type": "object",
+  "required": [
+    "process_id",
+    "version",
+    "start_state",
+    "states",
+    "paused_states",
+    "terminal_states",
+    "skills",
+    "guards",
+    "guarantees",
+    "authority_matrix",
+    "transitions",
+    "transition_field_semantics"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "process_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "start_state": {
+      "type": "string"
+    },
+    "state_classes": {
+      "type": "object"
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "paused_states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "terminal_states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "guards": {
+      "type": "object"
+    },
+    "guarantees": {
+      "type": "object"
+    },
+    "authority_matrix": {
+      "type": "object"
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "event",
+          "to",
+          "skill",
+          "event_owner_skill",
+          "next_skill"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "event": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "event_owner_skill": {
+            "type": "string"
+          },
+          "next_skill": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "transition_field_semantics": {
+      "type": "object",
+      "required": [
+        "event_owner_skill",
+        "next_skill",
+        "skill"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event_owner_skill": {
+          "type": "string"
+        },
+        "next_skill": {
+          "type": "string"
+        },
+        "skill": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

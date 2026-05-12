@@ -1,0 +1,29 @@
+{
+  "request_id": "RUN-EXAMPLE-001",
+  "bindings": [
+    {
+      "parameter_name": "target_package",
+      "required": true,
+      "status": "bound_explicit",
+      "value": "target-package.zip",
+      "source": "attachment",
+      "evidence": "User attached target-package.zip"
+    },
+    {
+      "parameter_name": "issue_source",
+      "required": true,
+      "status": "bound_explicit",
+      "value": "list-of-outstanding-issues-part1.txt",
+      "source": "attachment",
+      "evidence": "User attached issue list"
+    },
+    {
+      "parameter_name": "mutation_boundary",
+      "required": true,
+      "status": "defaulted",
+      "value": "state/candidate/v1/",
+      "source": "process_default",
+      "evidence": "PROCESS.json candidate isolation guard"
+    }
+  ]
+}

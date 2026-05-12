@@ -1,0 +1,15 @@
+IssueID: ISS-001
+Severity: high
+Scope: README.md
+Problem: README.md is missing in the package root.
+Evidence: target-package/ contains no README.md
+RequiredFix: Create README.md at package root with project name on line 1 and one-sentence description on line 2.
+Verify: README.md exists at package root with at least 2 non-empty lines.
+
+IssueID: ISS-002
+Severity: medium
+Scope: package.json
+Problem: package.json has no "version" field.
+Evidence: target-package/package.json lacks "version"
+RequiredFix: Add "version": "0.1.0" to the top-level JSON object of package.json.
+Verify: parse package.json and confirm version equals "0.1.0".

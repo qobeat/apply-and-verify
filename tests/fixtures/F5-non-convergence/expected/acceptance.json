@@ -1,0 +1,26 @@
+{
+  "fixture_id": "F5-non-convergence",
+  "description": "Repeated same verification failure must halt as non-convergence.",
+  "expected_state": "HALT_NON_CONVERGENCE",
+  "expected_state_class": "terminal",
+  "acceptance_criteria": {
+    "C1_no_works_when_unbound": true,
+    "C2_no_mutation_before_plan": true,
+    "C3_apply_only_in_candidate": true,
+    "C4_only_verify_sets_done": true,
+    "C5_verify_reflect_do_not_mutate_candidate": true,
+    "C6_done_has_evidence": true,
+    "C7_explicit_state": true,
+    "C8_non_convergence_guard": true
+  },
+  "minimum_observations": {
+    "iterations_max": 3,
+    "fingerprint_repeated_count_min": 2,
+    "issues_partN_files_count_min": 2,
+    "events_include": [
+      "work_verification_failed",
+      "loop_required",
+      "non_converged"
+    ]
+  }
+}

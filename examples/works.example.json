@@ -1,0 +1,14 @@
+[
+  {
+    "work_id": "W-001",
+    "issue_id": "ISS-001",
+    "owner_surface": "README.md",
+    "apply_directive": "Create README.md at package root with project name on line 1 and a one-sentence description on line 2.",
+    "verify_directive": "Confirm README.md exists at package root and has at least 2 non-empty lines.",
+    "risk_level": "low",
+    "done": false,
+    "evidence_refs": [],
+    "work_group": null,
+    "fingerprint": "readme-missing"
+  }
+]

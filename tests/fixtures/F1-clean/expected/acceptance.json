@@ -1,0 +1,30 @@
+{
+  "fixture_id": "F1-clean",
+  "description": "Happy path with complete target package and issue list.",
+  "expected_state": "HALT_SUCCESS",
+  "expected_state_class": "terminal",
+  "acceptance_criteria": {
+    "C1_no_works_when_unbound": true,
+    "C2_no_mutation_before_plan": true,
+    "C3_apply_only_in_candidate": true,
+    "C4_only_verify_sets_done": true,
+    "C5_verify_reflect_do_not_mutate_candidate": true,
+    "C6_done_has_evidence": true,
+    "C7_explicit_state": true,
+    "C8_non_convergence_guard": true
+  },
+  "minimum_observations": {
+    "works_total": 2,
+    "works_done": 2,
+    "candidate_dir_exists": true,
+    "verification_report_present": true,
+    "events_include": [
+      "intake_completed",
+      "parameters_bound",
+      "works_planned",
+      "apply_completed",
+      "verification_completed",
+      "halt_success"
+    ]
+  }
+}

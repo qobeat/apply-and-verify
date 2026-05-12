@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "event line in events.jsonl",
+  "type": "object",
+  "required": [
+    "event_id",
+    "ts",
+    "run_id",
+    "state_before",
+    "event_type",
+    "state_after"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^EV-[0-9]{4,}$"
+    },
+    "ts": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "state_before": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "skill": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "work_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "outcome": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state_after": {
+      "type": "string"
+    }
+  }
+}

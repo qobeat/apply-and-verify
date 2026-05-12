@@ -1,0 +1,7 @@
+run_id,fixture_id,model_or_agent,package_version,final_state,expected_state,passed,iterations,notes,evidence_path
+RUN-001,F1-clean,,v0.3,,HALT_SUCCESS,,,,
+RUN-002,F2-ambiguous,,v0.3,,WAIT_USER,,,,
+RUN-003,F3-contradictory,,v0.3,,HALT_HUMAN_REQUIRED,,,,
+RUN-004,F4-verify-failure,,v0.3,,HALT_SUCCESS,,,,
+RUN-005,F5-non-convergence,,v0.3,,HALT_NON_CONVERGENCE,,,,
+RUN-006,F6-high-risk,,v0.3,,HALT_HUMAN_REQUIRED,,,,

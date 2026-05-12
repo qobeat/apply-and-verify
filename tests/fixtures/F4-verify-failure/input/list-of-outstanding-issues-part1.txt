@@ -1,0 +1,7 @@
+IssueID: ISS-001
+Severity: medium
+Scope: README.md
+Problem: README.md is missing.
+Evidence: package root has no README.md
+RequiredFix: Create README.md with the exact phrase "Production-ready package" appearing somewhere in its body.
+Verify: README.md exists AND contains the literal text "Production-ready package".

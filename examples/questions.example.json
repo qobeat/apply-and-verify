@@ -1,0 +1,12 @@
+{
+  "request_id": "RUN-EXAMPLE-002",
+  "questions": [
+    {
+      "question_id": "Q-001",
+      "parameter_name": "target_package",
+      "question_text": "Which package should I fix? Please attach the target package as a zip or provide a directory path.",
+      "expected_format": "filename or path",
+      "why_needed": "Apply requires a target artifact to copy into the candidate folder."
+    }
+  ]
+}

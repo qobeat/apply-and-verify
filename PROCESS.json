@@ -1,0 +1,349 @@
+{
+  "process_id": "apply-and-verify-stage1",
+  "version": "v0.3",
+  "start_state": "START",
+  "state_classes": {
+    "active": [
+      "START",
+      "INTAKE",
+      "BIND_PARAMETERS",
+      "ASK_QUESTIONS",
+      "PLAN",
+      "APPLY",
+      "VERIFY",
+      "REFLECT"
+    ],
+    "paused": [
+      "WAIT_USER"
+    ],
+    "terminal": [
+      "HALT_SUCCESS",
+      "HALT_HUMAN_REQUIRED",
+      "HALT_NON_CONVERGENCE",
+      "HALT_UNSUPPORTED"
+    ]
+  },
+  "states": [
+    "START",
+    "INTAKE",
+    "BIND_PARAMETERS",
+    "ASK_QUESTIONS",
+    "WAIT_USER",
+    "PLAN",
+    "APPLY",
+    "VERIFY",
+    "REFLECT",
+    "HALT_SUCCESS",
+    "HALT_HUMAN_REQUIRED",
+    "HALT_NON_CONVERGENCE",
+    "HALT_UNSUPPORTED"
+  ],
+  "paused_states": [
+    "WAIT_USER"
+  ],
+  "terminal_states": [
+    "HALT_SUCCESS",
+    "HALT_HUMAN_REQUIRED",
+    "HALT_NON_CONVERGENCE",
+    "HALT_UNSUPPORTED"
+  ],
+  "skills": [
+    "Intake",
+    "BindParameters",
+    "AskQuestions",
+    "Plan",
+    "Apply",
+    "Verify",
+    "Reflect"
+  ],
+  "guards": {
+    "max_iterations": 3,
+    "repeat_issue_fingerprint_limit": 2,
+    "forbid_package_mutation_before_plan": true,
+    "forbid_works_when_mandatory_inputs_unbound": true,
+    "forbid_done_without_verification_evidence": true,
+    "forbid_apply_mutation_outside_candidate": true,
+    "forbid_done_set_by_non_verify_skill": true,
+    "forbid_stage1_destructive_changes_without_human": true
+  },
+  "guarantees": {
+    "G1": "No works are created while mandatory inputs are unbound.",
+    "G2": "No target or candidate mutation occurs before Plan.",
+    "G3": "Apply mutates only the candidate copy.",
+    "G4": "Only Verify may set done=true.",
+    "G5": "Every done=true has evidence.",
+    "G6": "Verify and Reflect do not mutate the candidate.",
+    "G7": "The run ends only in explicit terminal states or pauses at explicit paused states.",
+    "G8": "Repeated unresolved issue fingerprints force non-convergence halt."
+  },
+  "authority_matrix": {
+    "Intake": {
+      "may_create": [
+        "state/intake-result.json"
+      ],
+      "may_update": [
+        "state/events.jsonl"
+      ],
+      "must_not_create": [
+        "state/works.json"
+      ],
+      "must_not_modify": [
+        "target_package",
+        "state/candidate/**"
+      ]
+    },
+    "BindParameters": {
+      "may_create": [
+        "state/parameter-bindings.json"
+      ],
+      "may_update": [
+        "state/events.jsonl"
+      ],
+      "must_not_create": [
+        "state/works.json"
+      ],
+      "must_not_modify": [
+        "target_package",
+        "state/candidate/**"
+      ]
+    },
+    "AskQuestions": {
+      "may_create": [
+        "state/questions.json"
+      ],
+      "may_update": [
+        "state/run-state.json",
+        "state/events.jsonl"
+      ],
+      "must_not_create": [
+        "state/works.json"
+      ],
+      "must_not_modify": [
+        "target_package",
+        "state/candidate/**"
+      ]
+    },
+    "Plan": {
+      "may_create": [
+        "state/works.json"
+      ],
+      "may_update": [
+        "state/events.jsonl"
+      ],
+      "must_not_modify": [
+        "target_package",
+        "state/candidate/**"
+      ]
+    },
+    "Apply": {
+      "may_create": [
+        "state/candidate/**"
+      ],
+      "may_update": [
+        "state/candidate/**",
+        "state/events.jsonl"
+      ],
+      "must_not_modify": [
+        "target_package",
+        "state/works.json.done",
+        "state/works.json.evidence_refs"
+      ]
+    },
+    "Verify": {
+      "may_create": [
+        "state/verification-report.md"
+      ],
+      "may_update": [
+        "state/works.json.done",
+        "state/works.json.evidence_refs",
+        "state/events.jsonl"
+      ],
+      "must_not_modify": [
+        "target_package",
+        "state/candidate/**"
+      ]
+    },
+    "Reflect": {
+      "may_create": [
+        "state/issues.partN+1.jsonl",
+        "state/reflect-summary.iterN.md"
+      ],
+      "may_update": [
+        "state/run-state.json",
+        "state/events.jsonl"
+      ],
+      "must_not_modify": [
+        "target_package",
+        "state/candidate/**",
+        "state/works.json.done"
+      ]
+    }
+  },
+  "transitions": [
+    {
+      "from": "START",
+      "event": "start",
+      "to": "INTAKE",
+      "skill": "Intake",
+      "event_owner_skill": "System",
+      "next_skill": "Intake"
+    },
+    {
+      "from": "INTAKE",
+      "event": "intake_completed",
+      "to": "BIND_PARAMETERS",
+      "skill": "BindParameters",
+      "event_owner_skill": "Intake",
+      "next_skill": "BindParameters"
+    },
+    {
+      "from": "INTAKE",
+      "event": "unsupported_request",
+      "to": "HALT_UNSUPPORTED",
+      "skill": "Intake",
+      "event_owner_skill": "Intake",
+      "next_skill": null
+    },
+    {
+      "from": "BIND_PARAMETERS",
+      "event": "parameters_bound",
+      "to": "PLAN",
+      "skill": "Plan",
+      "event_owner_skill": "BindParameters",
+      "next_skill": "Plan"
+    },
+    {
+      "from": "BIND_PARAMETERS",
+      "event": "mandatory_inputs_unbound",
+      "to": "ASK_QUESTIONS",
+      "skill": "AskQuestions",
+      "event_owner_skill": "BindParameters",
+      "next_skill": "AskQuestions"
+    },
+    {
+      "from": "BIND_PARAMETERS",
+      "event": "ambiguous_input",
+      "to": "ASK_QUESTIONS",
+      "skill": "AskQuestions",
+      "event_owner_skill": "BindParameters",
+      "next_skill": "AskQuestions"
+    },
+    {
+      "from": "BIND_PARAMETERS",
+      "event": "contradictory_input",
+      "to": "HALT_HUMAN_REQUIRED",
+      "skill": "BindParameters",
+      "event_owner_skill": "BindParameters",
+      "next_skill": null
+    },
+    {
+      "from": "BIND_PARAMETERS",
+      "event": "out_of_scope",
+      "to": "HALT_UNSUPPORTED",
+      "skill": "BindParameters",
+      "event_owner_skill": "BindParameters",
+      "next_skill": null
+    },
+    {
+      "from": "ASK_QUESTIONS",
+      "event": "questions_emitted",
+      "to": "WAIT_USER",
+      "skill": "AskQuestions",
+      "event_owner_skill": "AskQuestions",
+      "next_skill": null
+    },
+    {
+      "from": "WAIT_USER",
+      "event": "user_answered",
+      "to": "BIND_PARAMETERS",
+      "skill": "BindParameters",
+      "event_owner_skill": "User",
+      "next_skill": "BindParameters"
+    },
+    {
+      "from": "PLAN",
+      "event": "works_planned",
+      "to": "APPLY",
+      "skill": "Apply",
+      "event_owner_skill": "Plan",
+      "next_skill": "Apply"
+    },
+    {
+      "from": "PLAN",
+      "event": "high_risk_detected",
+      "to": "HALT_HUMAN_REQUIRED",
+      "skill": "Plan",
+      "event_owner_skill": "Plan",
+      "next_skill": null
+    },
+    {
+      "from": "APPLY",
+      "event": "apply_completed",
+      "to": "VERIFY",
+      "skill": "Verify",
+      "event_owner_skill": "Apply",
+      "next_skill": "Verify"
+    },
+    {
+      "from": "APPLY",
+      "event": "apply_failed",
+      "to": "REFLECT",
+      "skill": "Reflect",
+      "event_owner_skill": "Apply",
+      "next_skill": "Reflect"
+    },
+    {
+      "from": "VERIFY",
+      "event": "verification_completed",
+      "to": "REFLECT",
+      "skill": "Reflect",
+      "event_owner_skill": "Verify",
+      "next_skill": "Reflect"
+    },
+    {
+      "from": "REFLECT",
+      "event": "halt_success",
+      "to": "HALT_SUCCESS",
+      "skill": "Reflect",
+      "event_owner_skill": "Reflect",
+      "next_skill": null
+    },
+    {
+      "from": "REFLECT",
+      "event": "loop_required",
+      "to": "PLAN",
+      "skill": "Plan",
+      "event_owner_skill": "Reflect",
+      "next_skill": "Plan"
+    },
+    {
+      "from": "REFLECT",
+      "event": "non_converged",
+      "to": "HALT_NON_CONVERGENCE",
+      "skill": "Reflect",
+      "event_owner_skill": "Reflect",
+      "next_skill": null
+    },
+    {
+      "from": "REFLECT",
+      "event": "human_required",
+      "to": "HALT_HUMAN_REQUIRED",
+      "skill": "Reflect",
+      "event_owner_skill": "Reflect",
+      "next_skill": null
+    },
+    {
+      "from": "REFLECT",
+      "event": "unsupported_halt",
+      "to": "HALT_UNSUPPORTED",
+      "skill": "Reflect",
+      "event_owner_skill": "Reflect",
+      "next_skill": null
+    }
+  ],
+  "transition_field_semantics": {
+    "event_owner_skill": "Skill or actor that is allowed to emit the transition event. Values are one of the declared skills plus System or User.",
+    "next_skill": "Next skill to execute after the transition. Null when the target state is paused or terminal.",
+    "skill": "Deprecated compatibility alias. For active target states it equals next_skill. For paused or terminal target states it equals event_owner_skill."
+  }
+}

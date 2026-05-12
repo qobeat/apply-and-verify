@@ -1,0 +1,28 @@
+{
+  "fixture_id": "F2-ambiguous",
+  "description": "Vague request with no target package and no issue list. Must not guess.",
+  "expected_state": "WAIT_USER",
+  "expected_state_class": "paused",
+  "acceptance_criteria": {
+    "C1_no_works_when_unbound": true,
+    "C2_no_mutation_before_plan": true,
+    "C3_apply_only_in_candidate": "n/a",
+    "C4_only_verify_sets_done": "n/a",
+    "C5_verify_reflect_do_not_mutate_candidate": "n/a",
+    "C6_done_has_evidence": "n/a",
+    "C7_explicit_state": true,
+    "C8_non_convergence_guard": "n/a"
+  },
+  "minimum_observations": {
+    "works_total": 0,
+    "questions_count_min": 1,
+    "questions_mention": [
+      "target_package"
+    ],
+    "candidate_dir_exists": false,
+    "events_include": [
+      "mandatory_inputs_unbound",
+      "questions_emitted"
+    ]
+  }
+}

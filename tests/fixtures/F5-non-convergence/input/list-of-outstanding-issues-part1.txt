@@ -1,0 +1,7 @@
+IssueID: ISS-001
+Severity: medium
+Scope: README.md
+Problem: README.md lacks the required exact verification phrase.
+Evidence: README.md does not contain the exact required phrase.
+RequiredFix: Ensure README.md contains the exact phrase "MAGIC-NONCONVERGENCE-TOKEN".
+Verify: README.md exists AND contains the literal text "MAGIC-NONCONVERGENCE-TOKEN".

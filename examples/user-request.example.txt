@@ -1,0 +1,1 @@
+Fix the attached package. Use the outstanding issues file. Produce a repaired candidate package and verify every work item with evidence.

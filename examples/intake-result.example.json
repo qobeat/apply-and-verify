@@ -1,0 +1,24 @@
+{
+  "request_id": "RUN-EXAMPLE-001",
+  "normalized_text": "Fix the attached package using the outstanding issues file.",
+  "detected_entities": [
+    {
+      "entity": "attached package",
+      "type": "target_package",
+      "source_span": "attached package"
+    },
+    {
+      "entity": "outstanding issues file",
+      "type": "issue_source",
+      "source_span": "outstanding issues file"
+    }
+  ],
+  "detected_action_verbs": [
+    "Fix",
+    "Use",
+    "Produce",
+    "verify"
+  ],
+  "intent_type": "package_repair",
+  "confidence": 0.92
+}
